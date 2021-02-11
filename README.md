@@ -4,6 +4,8 @@
 
 - SLACK_WEBHOOK_TOKEN - Slack webhook token.
 
+Rename example.env to .env and add the SLACK_WEBHOOK_TOKEN.
+
 ## START UP
 
 ```
