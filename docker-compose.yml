@@ -1,0 +1,23 @@
+version: "3"
+
+services:
+  market_clock:
+    build:
+      context: .
+    restart: on-failure
+    volumes:
+      - ./.env:/app/.env:ro
+
+    environment:
+      - REDIS_HOST=cache
+      - REDIS_PORT=6379
+      - MINUTES=5
+    depends_on:
+      - cache
+    command: ["main.py"]
+
+  cache:
+    image: redis:6.0.6
+    restart: on-failure
+    # ports:
+    # - 6379:6379

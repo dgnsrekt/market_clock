@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "market_clock"
+version = "0.1.0"
+description = ""
+authors = ["dgnsrekt <dgnsrekt@pm.me>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+pydantic = "^1.7.3"
+pendulum = "^2.1.2"
+redis = "^3.5.3"
+notifiers = "^1.2.1"
+python-decouple = "^3.4"
+loguru = "^0.5.3"
+
+[tool.poetry.dev-dependencies]
+pytest-watch = "^4.2.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
