@@ -7,6 +7,7 @@ from datetime import datetime
 from pendulum.tz.timezone import Timezone
 from typing import List, Optional
 from market_clock import holidays, weekends
+from enum import Enum
 
 
 class Holiday:
@@ -87,8 +88,12 @@ class Region(pydantic.BaseModel):
 
     def update(self):
         self.is_open = self.check_is_open()
-        self.time_to_open = self.get_time_until_open()
-        self.time_to_close = self.get_time_until_close()
+        if self.is_open:
+            self.time_to_open = None
+            self.time_to_close = self.get_time_until_close()
+        if not self.is_open:
+            self.time_to_open = self.get_time_until_open()
+            self.time_to_close = None
 
     def get_time_until_close(self):
         current_time = pendulum.now(tz=self.timezone)
@@ -155,6 +160,18 @@ class Region(pydantic.BaseModel):
         json_encoders = {Timezone: lambda tz: tz.name, Period: lambda p: p.in_words()}
 
 
+class MultipleRegions(pydantic.BaseModel):
+    exchanges: List[Region]
+
+    def update(self):
+        for exchange in self.exchanges:
+            exchange.update()
+
+    class Config:
+        arbitrary_types_allowed = True
+        json_encoders = {Timezone: lambda tz: tz.name, Period: lambda p: p.in_words()}
+
+
 WELLINGTON = Region(
     name="Wellington",
     exchange="NZX Wellington",
@@ -164,7 +181,7 @@ WELLINGTON = Region(
     holidays=holidays.WELLINGTON,
 )
 
-SYNDNEY = Region(
+SYDNEY = Region(
     name="Sydney",
     exchange="ASX Sydney",
     timezone="Australia/Sydney",
@@ -195,7 +212,7 @@ SINGAPORE = Region(
 
 
 HONG_KONG = Region(
-    name="Hong Kong",
+    name="Hong_Kong",
     exchange="HKEX Hong Kong",
     timezone="Asia/Hong_Kong",
     begin_time="09:30",
@@ -287,7 +304,7 @@ FRANKFURT = Region(
 )
 
 SAO_PAULO = Region(
-    name="Brazilian",
+    name="Sao_Paulo",
     exchange="BOVESPA Sao Paulo",
     timezone="America/Sao_Paulo",
     begin_time="10:00",
@@ -296,7 +313,7 @@ SAO_PAULO = Region(
 )
 
 NEW_YORK = Region(
-    name="New York",
+    name="New_York",
     exchange="NYSE New York",
     timezone="America/New_York",
     begin_time="09:30",
@@ -325,7 +342,7 @@ CHICAGO = Region(
 
 EXCHANGES = [
     WELLINGTON,
-    SYNDNEY,
+    SYDNEY,
     TOKYO,
     SINGAPORE,
     HONG_KONG,
@@ -343,3 +360,35 @@ EXCHANGES = [
     TORONTO,
     CHICAGO,
 ]
+
+EXCHANGE_DICTIONARY = {}
+
+for exchange in EXCHANGES:
+    key = exchange.name.upper()
+    value = exchange
+    EXCHANGE_DICTIONARY[key] = value
+
+
+class RegionEnum(str, Enum):
+    wellington = "WELLINGTON"
+    sydney = "SYDNEY"
+    tokyo = "TOKYO"
+    singapore = "SINGAPORE"
+    hong_kong = "HONG_KONG"
+    shanghai = "SHANGHAI"
+    indai = "INDIA"
+    dubai = "DUBAI"
+    moscow = "MOSCOW"
+    johannesburg = "JOHANNESBURG"
+    saudi = "SAUDI"
+    london = "LONDON"
+    swiss = "SWISS"
+    frankfurt = "FRANKFURT"
+    sao_paulo = "SAO_PAULO"
+    new_york = "NEW_YORK"
+    toronto = "TORONTO"
+    chicago = "CHICAGO"
+
+
+def get_regions():
+    return MultipleRegions(exchanges=EXCHANGES)

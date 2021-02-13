@@ -10,7 +10,7 @@ RUN cd /tmp/install/ && poetry install --no-root
 
 COPY market_clock /app/market_clock
 
-COPY main.py /app/main.py
+COPY slack.py /app/slack.py
 
 WORKDIR /app
 

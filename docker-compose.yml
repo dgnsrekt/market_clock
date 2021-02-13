@@ -1,9 +1,10 @@
 version: "3"
 
 services:
-  market_clock:
+  market_clock_slack_messenger:
     build:
       context: .
+      dockerfile: slack.dockerfile
     restart: on-failure
     volumes:
       - ./.env:/app/.env:ro
@@ -14,7 +15,15 @@ services:
       - MINUTES=5
     depends_on:
       - cache
-    command: ["main.py"]
+    command: ["slack.py"]
+
+  market_clock_api:
+    build:
+      context: .
+      dockerfile: api.dockerfile
+    restart: on-failure
+    ports:
+      - 7777:80
 
   cache:
     image: redis:6.0.6

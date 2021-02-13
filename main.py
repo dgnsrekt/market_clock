@@ -1,49 +1,19 @@
-from market_clock.regions import EXCHANGES
-from market_clock.cache import RedisCache
-from decouple import config
-from notifiers.providers.slack import Slack
-from loguru import logger
+from fastapi import FastAPI
+from market_clock.regions import get_regions, RegionEnum, EXCHANGE_DICTIONARY
 
-import time
-
-SLACK_WEBHOOK_TOKEN = config("SLACK_WEBHOOK_TOKEN")
-SLACK_WEBHOOK = f"https://hooks.slack.com/services/{SLACK_WEBHOOK_TOKEN}"
-
-MINUTES = config("MINUTES", cast=int)
+app = FastAPI()
 
 
-def main():
-    slack_client = Slack()
-
-    for region in EXCHANGES:
-        region.update()
-
-        if not region.is_open:
-            logger.info(f"{region.name.upper()} MARKET CLOSED")
-            logger.info(f"{region.time_to_open.in_words()} to the Opening Bell")
-
-            if region.time_to_open.in_minutes() < MINUTES:
-                if not RedisCache.check_opening_message_sent(region.name.upper()):
-                    message = f"[{region.name}] - {region.exchange} exchange opening in {region.time_to_open.in_minutes()} minutes."
-                    slack_client.notify(message=message, webhook_url=SLACK_WEBHOOK)
-                    RedisCache.add_opening(region.name.upper())
-                    logger.info(message)
-                    time.sleep(5)
-
-        if region.is_open:
-            logger.info(f"{region.name.upper()} MARKET OPEN")
-            logger.info(f"{region.time_to_close.in_words()} to the Closing Bell")
-
-            if region.time_to_close.in_minutes() < MINUTES:
-                if not RedisCache.check_closing_message_sent(region.name.upper()):
-                    message = f"[{region.name}] - {region.exchange} exchange closing in {region.time_to_close.in_minutes()} minutes."
-                    slack_client.notify(message=message, webhook_url=SLACK_WEBHOOK)
-                    RedisCache.add_closing(region.name.upper())
-                    logger.info(message)
-                    time.sleep(5)
+@app.get("/")
+async def index():
+    regions = get_regions()
+    regions.update()
+    return regions
 
 
-if __name__ == "__main__":
-    while True:
-        main()
-        time.sleep(60)
+@app.get("/region/{region_name}")
+async def get_region_name(region_name: RegionEnum):
+    regions = get_regions()
+    exchange = EXCHANGE_DICTIONARY[region_name.value]
+    exchange.update()
+    return exchange
