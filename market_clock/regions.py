@@ -140,7 +140,8 @@ class Region(pydantic.BaseModel):
 
         if current_time < start_date:
             if current_time.date() == start_date.date():
-                return start_date
+                if current_time.day_of_week not in self.weekends:
+                    return start_date
 
         for day in pendulum.period(start_date.add(days=1), start_date.add(days=7)):
             if day.day_of_week in self.weekends:
