@@ -12,7 +12,7 @@ services:
     environment:
       - REDIS_HOST=cache
       - REDIS_PORT=6379
-      - MINUTES=5
+      - MINUTES=30
     depends_on:
       - cache
     command: ["slack.py"]

@@ -29,7 +29,9 @@ class Region(pydantic.BaseModel):
     exchange: str
     is_open: Optional[bool]
     time_to_open: Optional[Period]
+    seconds_to_open: Optional[int]
     time_to_close: Optional[Period]
+    seconds_to_close: Optional[int]
     weekends: List[int] = weekends.NORMAL_WEEKEND
     holidays: List[datetime]
 
@@ -89,11 +91,18 @@ class Region(pydantic.BaseModel):
     def update(self):
         self.is_open = self.check_is_open()
         if self.is_open:
-            self.time_to_open = None
             self.time_to_close = self.get_time_until_close()
+            self.seconds_to_close = self.time_to_close.seconds
+
+            self.time_to_open = None
+            self.seconds_to_open = None
+
         if not self.is_open:
             self.time_to_open = self.get_time_until_open()
+            self.seconds_to_open = self.time_to_open.seconds
+
             self.time_to_close = None
+            self.seconds_to_close = None
 
     def get_time_until_close(self):
         current_time = pendulum.now(tz=self.timezone)
@@ -340,6 +349,16 @@ CHICAGO = Region(
     holidays=holidays.CHICAGO,
 )
 
+UTC = Region(
+    name="UTC",
+    exchange="UTC",
+    timezone="Etc/UTC",
+    begin_time="00:00",
+    end_time="23:59",
+    weekends=[],
+    holidays=[],
+)
+
 EXCHANGES = [
     WELLINGTON,
     SYDNEY,
@@ -359,6 +378,7 @@ EXCHANGES = [
     NEW_YORK,
     TORONTO,
     CHICAGO,
+    UTC,
 ]
 
 EXCHANGE_DICTIONARY = {}
@@ -388,6 +408,7 @@ class RegionEnum(str, Enum):
     new_york = "NEW_YORK"
     toronto = "TORONTO"
     chicago = "CHICAGO"
+    utc = "UTC"
 
 
 def get_regions():
