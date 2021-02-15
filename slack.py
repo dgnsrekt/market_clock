@@ -28,7 +28,7 @@ def main():
                     slack_client.notify(message=message, webhook_url=SLACK_WEBHOOK)
                     RedisCache.add_opening(region.name.upper())
                     logger.info(message)
-                    time.sleep(5)
+                    time.sleep(1)
 
         if region.is_open:
             logger.info(f"{region.name.upper()} MARKET OPEN")
@@ -40,7 +40,7 @@ def main():
                     slack_client.notify(message=message, webhook_url=SLACK_WEBHOOK)
                     RedisCache.add_closing(region.name.upper())
                     logger.info(message)
-                    time.sleep(5)
+                    time.sleep(1)
 
 
 if __name__ == "__main__":
